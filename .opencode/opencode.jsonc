@@ -1,0 +1,15 @@
+// Software-factory template — OpenCode config.
+//
+// This file exists so vibr8's OpenCodeProjectAdapter yields ownership of
+// the model pin to the template. Without it, the adapter injects
+// OPENCODE_DEFAULT_MODEL = openai/gpt-5.2-codex to avoid OpenCode's default
+// model resolution landing on a tool-incompatible model. Same intent here,
+// declared explicitly.
+//
+// Per-agent configuration is NOT required — the agent files under agents/
+// declare their own mode + tools frontmatter and OpenCode discovers them
+// via the OPENCODE_CONFIG_DIR walk that the adapter sets to .opencode/.
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openai/gpt-5.2-codex"
+}
