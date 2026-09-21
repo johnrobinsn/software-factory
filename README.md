@@ -35,12 +35,22 @@ software-factory/
 │   ├── retrospective.md     # /retrospective
 │   ├── worktrees.md         # /worktrees
 │   └── kill.md              # /kill <slug>
-├── agents/
+├── agents/                  # Claude Code sub-agent definitions
 │   ├── spec-writer.md
 │   ├── implementer.md
 │   ├── reviewer.md
 │   ├── deployer.md
 │   └── triager.md
+├── .opencode/               # OpenCode-specific view
+│   ├── agents/              # OpenCode sub-agent definitions (mode: subagent)
+│   │   ├── spec-writer.md
+│   │   ├── implementer.md
+│   │   ├── reviewer.md
+│   │   ├── deployer.md
+│   │   └── triager.md
+│   ├── skills → ../skills   # symlink; portable skills work for both
+│   ├── commands → ../commands
+│   └── opencode.jsonc       # model pin
 └── templates/
     ├── SPEC.md              # bare section-header spec mold
     ├── backlog.md           # empty backlog seed
@@ -111,9 +121,16 @@ Set `primary_repo` at `project_create` time (or later, by editing the project's 
 
 ## Backend support
 
-**Claude Code — first-class.** Sub-agents use Claude Code's Agent tool. All skills and commands assume Claude Code's semantics.
+**Both Claude Code and OpenCode are supported.** The template ships parallel agent definitions:
 
-**OpenCode — Phase 2.** The template does not yet ship OpenCode `modes/` parallels for the sub-agents. You can still use it via vibr8's OpenCode adapter; skills and commands mostly work, but sub-agent invocation degrades to regular tool calls. Full OpenCode support is planned.
+- `agents/*.md` — Claude Code sub-agents (invoked via the `Agent` tool with `subagent_type`).
+- `.opencode/agents/*.md` — OpenCode sub-agents (invoked via the `task` tool with `subagent_type`).
+
+Same 5 roles (spec-writer, implementer, reviewer, deployer, triager), same tool restrictions per role. The delegation shape is identical between backends — both tools take `{description, prompt, subagent_type}`. Only the frontmatter differs (Claude uses `tools:` as a comma-string; OpenCode uses `mode: subagent` + `tools:` as a boolean map).
+
+Skills (`skills/`) and commands (`commands/`) work as-is under both backends — no per-backend parallels needed. The `.opencode/skills/` and `.opencode/commands/` entries are relative symlinks pointing at the portable roots, so a single edit updates both views.
+
+vibr8's OpenCode adapter sets `OPENCODE_CONFIG_DIR` to the template's `.opencode/` at session spawn. The template ships `.opencode/opencode.jsonc` with an explicit `model: openai/gpt-5.2-codex` pin (OpenCode's default model resolution can pick a tool-incompatible model otherwise).
 
 ## Design references
 
