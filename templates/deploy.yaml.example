@@ -1,0 +1,60 @@
+# deploy.yaml — project-level deploy configuration
+#
+# Copy this to <project_dir>/deploy.yaml and fill in the tiers your project
+# actually uses. Delete tiers you don't need. The `deploy` skill reads this
+# file at invocation time; it isn't consumed by the template ingest.
+#
+# All fields under each tier are optional except `deploy_cmd` and
+# `health_check` — the deployer sub-agent refuses to run without those two.
+#
+# Runtime placeholders available in commands: {{BRANCH}}, {{ISSUE_NUMBER}},
+# {{SHA}}, {{DATE}}, {{TIME}}. Interpolated by the deployer sub-agent.
+
+# ---------------------------------------------------------------------------
+# dev — local or shared dev environment. Usually the safest, no confirmation.
+# ---------------------------------------------------------------------------
+# dev:
+#   url: http://localhost:3000
+#   branch: main
+#   deploy_cmd: ./scripts/deploy-dev.sh
+#   health_check: curl -fsSL http://localhost:3000/health
+#   rollback_cmd: ./scripts/rollback-dev.sh
+#   env:
+#     NODE_ENV: development
+
+# ---------------------------------------------------------------------------
+# staging — pre-prod smoke test target. Might require confirmation if shared.
+# ---------------------------------------------------------------------------
+# staging:
+#   url: https://staging.example.com
+#   branch: main
+#   deploy_cmd: fly deploy --config fly.staging.toml
+#   health_check: curl -fsSL https://staging.example.com/health
+#   rollback_cmd: fly deploy --config fly.staging.toml --image <previous-sha>
+#   require_confirmation: false
+
+# ---------------------------------------------------------------------------
+# prod — production. ALWAYS requires operator confirmation (this key is set
+# implicitly for tier name "prod"; keeping it explicit here for clarity).
+# ---------------------------------------------------------------------------
+# prod:
+#   url: https://app.example.com
+#   branch: main
+#   deploy_cmd: fly deploy --config fly.prod.toml
+#   health_check: |
+#     curl -fsSL https://app.example.com/health && \
+#     curl -fsSL https://app.example.com/api/version | grep -q "{{SHA}}"
+#   rollback_cmd: fly releases rollback
+#   require_confirmation: true
+
+# ---------------------------------------------------------------------------
+# preview — per-worktree, side-by-side ephemeral deploy. Uses {{BRANCH}} or
+# {{ISSUE_NUMBER}} to keep instances distinct. If omitted, the deploy skill
+# will refuse preview-tier requests and suggest degrading to dev.
+# ---------------------------------------------------------------------------
+# preview:
+#   url: https://{{BRANCH}}.preview.example.com
+#   deploy_cmd: fly deploy --config fly.preview.toml --app preview-{{BRANCH}}
+#   health_check: curl -fsSL https://{{BRANCH}}.preview.example.com/health
+#   rollback_cmd: fly apps destroy preview-{{BRANCH}} --yes
+#   idle_timeout_hours: 4
