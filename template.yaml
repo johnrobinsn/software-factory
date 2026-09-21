@@ -1,0 +1,58 @@
+name: software-factory
+version: "0.1.0"
+category: development
+
+defaults:
+  backend: claude   # Claude-first for v0.1; OpenCode support is Phase 2.
+
+# Project scaffolds these under <project_dir>/ at project_create.
+layout:
+  subdirs:
+    - kb           # session cwd; briefs, decisions, retrospectives live here
+    - code         # the actual repo(s) live here (git clone into code/<repo-name>)
+    - worktrees    # parallel feature/bug worktrees, one dir per issue/branch
+    - checkpoints  # metadata + notes about known-good rollback points
+
+variables:
+  - name: factory_root
+    type: path
+    default: "{{project.dir}}/kb"
+    description: "Where the project session keeps its own operator-facing artifacts (briefs, retrospectives, checkpoint notes, issue queue snapshots, SPEC.md)."
+    required: false
+
+  - name: primary_repo
+    type: string
+    default: ""
+    description: "Optional GitHub slug 'owner/repo' the factory tracks. Empty = no GitHub integration (spec + local dev only). Set to enable the issue-scan skill and github-triage flow."
+    required: false
+
+  - name: issue_label
+    type: string
+    default: "factory"
+    description: "GitHub label the factory picks up during autonomous scans. Issues without this label are ignored."
+    required: false
+
+  - name: primary_branch
+    type: string
+    default: "main"
+    description: "Long-lived integration branch. Feature/bug worktrees are cut from and merged back to this branch."
+    required: false
+
+  - name: parallel_worktree_limit
+    type: int
+    default: 3
+    description: "Soft cap on concurrent worktrees the session will spin up for parallel work. Bounded to keep operator context reviewable."
+    required: false
+
+# Deploy tier configuration is intentionally NOT a template variable — it lives
+# in a project-level deploy.yaml (see templates/deploy.yaml.example). Deploy
+# config is multi-key per tier (url, branch, deploy_cmd, health_check) and
+# evolves independently of project creation.
+
+# Bare tokens the render engine passes through unchanged for the agent to fill
+# at slash-command runtime.
+runtime_placeholders:
+  - DATE
+  - TIME
+  - BRANCH
+  - ISSUE_NUMBER
